@@ -1,81 +1,94 @@
 import plotly.offline as py
 import plotly.figure_factory as ff
 import pandas as pd
-import json
+import json, datetime
 
-# import schedule data into a pandas dataframe
-# load it into a gantt chart
-# fix axes
-    # how to get rid of dates and only use times?
-# fix tooltips
-# fix colour coding
+def create_gantt(df):
+    def nominal_date(str_date):
+        input_format="%Y-%m-%d %H:%M:%S"
+        output_format="%Y-%m-%d"
+        try:
+            date = datetime.datetime.strptime(str_date,input_format)
+            placeholder_datetime(str_date.split()[1])
+            if date.time() > datetime.time(12):
+                return date.strftime(output_format)
+            else:
+                previous_day = date - datetime.timedelta(days=1)
+                return previous_day.strftime(output_format)
+        except ValueError:
+            date = None
 
-# # Obtain data from the scheduler output
-# filename = "normal_schedule_20190416024632.json"
-# with open(filename, "r") as openfile:
-#     data = json.loads(openfile.read())
-#
-# semester_id = data['semester_id']
-# schedule_start = data['schedule_start']
-# schedule_end = data['schedule_end']
-# horizon_days = data['horizon_days']
-# total_priority = data['total_priority_value']
-#
-# telescope_name = "4m0a.doma.sor"
-# telescope_info = data['resources'][telescope_name]
-# telescope_priority = telescope_info['priority_value']
-# dark_intervals = telescope_info['dark_intervals']
-#
-# def format_block(r):
-#     r_id = x['request_id']
-#     r_start = str(x['start']).split("T")
-#     r_sd = r_start[0]
-#     r_st = r_start[1]
-#     r_end = str(x['end']).split("T")
-#     r_ed = r_end[0]
-#     r_et = r_end[1]
-#     return (r_id,r_sd,r_st,r_ed,r_et)
-#
-# scheduled_requests = [ format_block(x) for x in telescope_info['reservations']]
-#
-# # Split up any requests that occur over midnight
-# requests = []
-# split_requests = []
-# for req in scheduled_requests:
-#     if req[1] != req[3]:
-#         split_requests.append(req)
-#     else:
-#         requests.append(req)
-#
-# for r in split_requests:
-#     requests.append( r[:3] + (r[1], '23:59:59') )
-#     requests.append( (r[0], r[3], '00:00:00', r[3], r[4]) )
-#
-#
-# # Obtain data from the input requests
-# data = json.load(open("input_request_data.json","r"))
-# available_telescopes = data['available_resources']
-# semester_details = data['semester_details']
-#
-# request_groups = data['json_request_group_list']
-#
-# def format_request(r):
-#     ipp = 0
-#
-#
+    def placeholder_datetime(time):
+        time = datetime.datetime.strptime(time,"%H:%M:%S")
+        if time.time() < datetime.time(12):
+            time = time + datetime.timedelta(days=1)
+        return time.strftime("%Y-%m-%d %H:%M:%S")
+
+    df['nominal_day'] = df['start'].apply(nominal_date)
+    df['start_time'] = df['start_time'].apply(placeholder_datetime)
+    df['finish_time'] = df['finish_time'].apply(placeholder_datetime)
+
+    def duplicate_columns(df,**kwargs):
+        try:
+            for new_col in kwargs:
+                old_col = kwargs[new_col]
+                df[new_col] = df[old_col]
+        except Exception as e:
+            print e
+        return df
+
+    duplicate_columns(df,Task="nominal_day",Start="start_time",Finish="finish_time")
+
+    def set_hovertext(id,start,finish):
+        return "Request {}: {} to {}".format(id,start,finish)
 
 
+    df['hovertext'] = df.apply(lambda x: set_hovertext(x['id'],x['start'],x['finish']),axis=1)
 
+    # df.rename(columns={
+    #     "nominal_day":"Task",
+    #     "start_time":"Start",
+    #     "finish_time":"Finish",
+    #     },inplace=True)
 
-ffd = [ x for x in scheduled_requests if (x[1] == '2019-04-17' or x[3] == '2019-04-17')]
+    df = df.sort_values(by=['id'],ascending=True).reset_index(drop=True)
+    print df['id']
 
-df = [dict(Task=1,Start=x[1]+" "+x[2],Finish=x[3]+" "+x[4]) for x in requests]
+    # # Set colour coding
+    # def colour_code(start,stop):
+    #     colour_dict = {}
+    #     n = start-stop+1
+    #     halfway = int(n/2)
+    #     for i in range(halfway):
+    #         passs
 
-fig = ff.create_gantt(df, title='Daily Schedule',showgrid_x=True,
-    showgrid_y=True, group_tasks=True)
-py.plot(fig, filename='gantt-simple-gantt-chart.html')
+    colour_code = {}
+    for i in range(104-59):
+        #print (104-49)/2
+        c = int(i / (103.-59.) * 255.)
+        colour = 'rgb({}, 0, 0)'.format(c)
+        #print c, colour, i+59
+        colour_code[i+59] = colour
 
-print schedule_start, schedule_end
+    fig = ff.create_gantt(df, title='Example SOAR Schedule',showgrid_x=True,
+        showgrid_y=True, group_tasks=True, colors=colour_code, index_col='id')
+
+    # Modifying the hovertext
+    for k in range(len(fig['data'])):
+        text = df['hovertext'].loc[k]
+        fig['data'][k].update(text=text,hoverinfo="text")
+
+    # fig.layout.xaxis.tickformat = "%H:%M%p"
+    fig['layout']['xaxis']['tickformat'] = "%H:%M%p"
+    fig['layout']['xaxis']['rangeselector']['visible'] = False
+
+    return df, fig
+
+# fig.layout.xaxis.tickformat = "%H:%M%p"
+
+# py.plot(fig, filename='../data/gantt_test_chart.html')
+
+################################################################################
 
 # ## Basic Gantt Data
 # # df = [dict(Task="Job A", Start="2009-01-01", Finish="2009-02-28"),
@@ -134,3 +147,10 @@ print schedule_start, schedule_end
 # # If possible, make clicking on a bar open a json-tree-explorer in a frame below,
 # # to allow you to see the details of the observation request.
 # # ALSO have an additional row/several for observations that did not get scheduled.
+
+if __name__ == "__main__":
+    from format_data import *
+    df = transform_to_plotly()
+    fig = create_gantt(df)
+    print json.dumps(fig)
+    py.plot(fig, filename='../data/gantt_test_chart.html')
