@@ -96,12 +96,10 @@ def silencer(errors=False):
     if errors:
         sys.stderr = save_stderr
 
-# Utility Functions
-def list_keys(d):
-    for key in d:
-        print key
-
-lk=list_keys
+def load_pickled_file_quietly():
+    with silencer(True):
+        data = load_pickled_file()
+    return data
 
 if __name__ == "__main__":
     # Unpickle file

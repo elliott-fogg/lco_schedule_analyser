@@ -23,3 +23,9 @@ if not, might be needed/useful for future schedules.
 
 ## Attempt to remove the Undo buttons from the Dash page
 This might require some custom CSS
+
+## Make the webpage open automatically upon running the `interactive.py` script
+
+## Merge Input and Output data together
+Extract relevant information from both files and correlate into the dataframe.
+Add a method of investigating unscheduled requests
