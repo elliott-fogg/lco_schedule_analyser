@@ -43,8 +43,8 @@ def get_output_data():
 def get_input_data():
 
     # Load the pickled datafile
-    from unpickler import load_pickled_file_quietly
-    data = load_pickled_file_quietly()
+    from unpickler import load_pickled_file
+    data = load_pickled_file()
 
     # Overview information
     available_telescopes = data['available_resources']

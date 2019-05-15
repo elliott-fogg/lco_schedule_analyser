@@ -40,8 +40,8 @@ app.layout = html.Div([
         [
             dcc.Dropdown(
                 id="color_code",
-                options=[{'label':l,'value':v} for l,v in color_options.items()],
-                value={'label':"ID",'value':'id'},
+                options=[{'label':l,'value':v} for l,v in color_options.iteritems()],
+                value='id',
                 clearable=False),
         ],
         style={'width': '25%',
@@ -71,7 +71,8 @@ def display_click_data(clickData):
     else:
         try:
             curve_num = clickData['points'][0]['curveNumber']
-            return df['request_id'].loc[curve_num]
+            data = df.loc(df['curve']==curve_num, 'configurations').values[0]
+            return "json.dumps(data)"
         except Exception as e:
             print e
             return "clickData exists, but there was an error"

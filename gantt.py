@@ -55,8 +55,11 @@ def configure_df_for_plotting(df):
         Start="start_time",Finish="finish_time")
     df['hovertext'] = df.apply(\
         lambda x: set_hovertext(x['request_id'],x['start'],x['finish']),axis=1)
-    df = df.sort_values(by=['request_id'],\
-        ascending=True).reset_index(drop=True)
+
+    df = df.sort_values(by='scheduled',\
+        ascending=False).reset_index(drop=True)
+    df['curve'] = df.index
+    df.loc[df['scheduled'] == False, 'curve'] = NAN
 
     return df
 
@@ -71,6 +74,13 @@ def create_gantt(df,color_code='id'):
     def spaced_colors(n):
         colors = [
             [ int(c * 255) for c in hsv_to_rgb(float(i) / n,1,1) ] \
+            for i in range(n)
+        ]
+        return colors
+
+    def scaled_colors(n):
+        colors = [
+            [ int(c * 255) for c in hsv_to_rgb(1,float(i) / (n-1),1) ] \
             for i in range(n)
         ]
         return colors
@@ -115,10 +125,7 @@ def create_gantt(df,color_code='id'):
 
     ##### Plot Creation ###################################################
 
-    # colors, color_key = colormap(df_plot, color_code)
-
-    colors = color_by_id(df_plot,None)
-    color_key = 'request_id'
+    colors, color_key = colormap(df_plot, color_code)
 
     df_plot = df_plot.reset_index(drop=True)
 
@@ -154,4 +161,4 @@ if __name__ == "__main__":
     df = configure_df_for_plotting(df)
     fig = create_gantt(df,'id')
     # print json.dumps(fig)
-    py.plot(fig, filename='../data/gantt_test_chart.html')
+    # py.plot(fig, filename='../data/gantt_test_chart.html')
