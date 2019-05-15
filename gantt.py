@@ -1,14 +1,17 @@
 import plotly.offline as py
 import plotly.figure_factory as ff
 import pandas as pd
+from numpy import nan as NAN
+from colorsys import hsv_to_rgb
 import json, datetime
 
-
-# Create a Gantt Chart in Plotly from a Pandas Dataframe
-def create_gantt(df):
+# Add the necessary plotting information to the dataframe
+def configure_df_for_plotting(df):
 
     ##### Pandas manipulation functions ###################################
     def nominal_date(str_date):
+        if pd.isnull(str_date):
+            return NAN
         input_format="%Y-%m-%d %H:%M:%S"
         output_format="%Y-%m-%d"
         try:
@@ -23,6 +26,8 @@ def create_gantt(df):
             date = None
 
     def placeholder_datetime(time):
+        if pd.isnull(time):
+            return NAN
         time = datetime.datetime.strptime(time,"%H:%M:%S")
         if time.time() < datetime.time(12):
             time = time + datetime.timedelta(days=1)
@@ -38,43 +43,94 @@ def create_gantt(df):
         return df
 
     def set_hovertext(id,start,finish):
+        if pd.isnull(start):
+            return NAN
         return "ID:{}\n\nStart: {}\n\nEnd: {}".format(id,start,finish)
 
     ##### Pandas Manipulation #############################################
     df['nominal_day'] = df['start'].apply(nominal_date)
     df['start_time'] = df['start_time'].apply(placeholder_datetime)
     df['finish_time'] = df['finish_time'].apply(placeholder_datetime)
-    duplicate_columns(df,Task="nominal_day",Start="start_time",Finish="finish_time")
-    df['hovertext'] = df.apply(lambda x: set_hovertext(x['id'],x['start'],x['finish']),axis=1)
-    df = df.sort_values(by=['id'],ascending=True).reset_index(drop=True)
+    duplicate_columns(df,Task="nominal_day",\
+        Start="start_time",Finish="finish_time")
+    df['hovertext'] = df.apply(\
+        lambda x: set_hovertext(x['request_id'],x['start'],x['finish']),axis=1)
+    df = df.sort_values(by=['request_id'],\
+        ascending=True).reset_index(drop=True)
 
-    ##### Colour-Coding functions #########################################
+    return df
 
-    def colour_by_id(df):
-        id_max = df['id'].max()
-        id_min = df['id'].min()
+
+# Create a Gantt Chart in Plotly from a Pandas Dataframe
+def create_gantt(df,color_code='id'):
+
+    df_plot = df[df['scheduled']]
+
+    ##### color-Coding functions #########################################
+
+    def spaced_colors(n):
+        colors = [
+            [ int(c * 255) for c in hsv_to_rgb(float(i) / n,1,1) ] \
+            for i in range(n)
+        ]
+        return colors
+
+    def color_by_id(df, color_key):
+        id_max = df['request_id'].max()
+        id_min = df['request_id'].min()
         num_values = id_max - id_min + 1
 
-        colour_map = {}
-        for i in df['id']:
-            red_val = ((i - id_min) / float(num_values)) * 255.
-            colour = "rgb({}, 0, 0)".format(red_val)
-            colour_map[i] = colour
+        color_map = {}
+        for i in df['request_id']:
+            red_val = int(((i - id_min) / float(num_values)) * 255.)
+            color = "rgb({}, 0, 0)".format(red_val)
+            color_map[i] = color
 
-        return colour_map
+        return color_map
+
+    def unique_colors(df,color_key):
+        # Custom curated
+        v = df[color_key].unique()
+        n = len(v)
+        c = spaced_colors(n)
+
+        color_map = {}
+        for i in range(n):
+            color_map[v[i]] = "rgb({}, {}, {})".format(\
+                int(c[i][0]), int(c[i][1]), int(c[i][2]))
+
+        return color_map
+
+    color_code_dict = {
+        'id': [color_by_id,'request_id'],
+        'proposal': [unique_colors,'proposal_priority'],
+    }
+
+    def colormap(df,color_code):
+        selection = color_code_dict[color_code]
+        _function = selection[0]
+        value = selection[1]
+
+        return _function(df,value), value
 
     ##### Plot Creation ###################################################
 
-    colors = colour_by_id(df)
+    # colors, color_key = colormap(df_plot, color_code)
 
-    fig = ff.create_gantt(df, title='Example SOAR Schedule',showgrid_x=True,
-        showgrid_y=True, group_tasks=True, colors=colors, index_col='id')
+    colors = color_by_id(df_plot,None)
+    color_key = 'request_id'
+
+    df_plot = df_plot.reset_index(drop=True)
+
+    fig = ff.create_gantt(df_plot, title='Example SOAR Schedule', \
+        showgrid_x=True, showgrid_y=True, group_tasks=True, \
+        colors=colors, index_col=color_key)
 
     ##### Final Layout Modifications ######################################
 
     # Modify the hovertext
     for k in range(len(fig['data'])):
-        text = df['hovertext'].loc[k]
+        text = df_plot['hovertext'].loc[k]
         fig['data'][k].update(text=text,hoverinfo="text")
 
     # Change axes labels to only use times
@@ -87,7 +143,7 @@ def create_gantt(df):
     del fig['layout']['height']
     del fig['layout']['width']
 
-    return df, fig
+    return fig
 
 
 ################################################################################
@@ -95,6 +151,7 @@ def create_gantt(df):
 if __name__ == "__main__":
     from format_data import *
     df = obtain_dataframe()
-    df, fig = create_gantt(df)
-    print json.dumps(fig)
+    df = configure_df_for_plotting(df)
+    fig = create_gantt(df,'id')
+    # print json.dumps(fig)
     py.plot(fig, filename='../data/gantt_test_chart.html')

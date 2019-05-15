@@ -8,13 +8,12 @@ from dash.dependencies import Input, Output
 
 import plotly.figure_factory as ff
 from format_data import *
-from gantt import create_gantt
+from gantt import configure_df_for_plotting, create_gantt
 
-df = obtain_dataframe()
-df, fig = create_gantt(df)
+df = configure_df_for_plotting(obtain_dataframe())
+fig = create_gantt(df)
 
-# fig = ff.create_gantt(df, title='Daily Schedule',showgrid_x=True,
-#     showgrid_y=True, group_tasks=True)
+print "HERE"
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -27,7 +26,10 @@ styles = {
     }
 }
 
-colour_options = {'ID': 'id'}
+color_options = {
+    'ID': 'id',
+    'Proposal Priority': 'proposal'
+    }
 
 app.layout = html.Div([
     html.H2("SOAR Scheduler Analysis"),
@@ -37,8 +39,8 @@ app.layout = html.Div([
     html.Div(
         [
             dcc.Dropdown(
-                id="Colour_Code",
-                options=[{'label':l,'value':v} for l,v in colour_options.items()],
+                id="color_code",
+                options=[{'label':l,'value':v} for l,v in color_options.items()],
                 value={'label':"ID",'value':'id'},
                 clearable=False),
         ],
@@ -51,15 +53,14 @@ app.layout = html.Div([
     html.Div(className='row', children=[
         html.Div([
             dcc.Markdown(d("""
-                **Click Data**
+                **Request Data**
 
-                Click on points in the graph.
+                Click on a request to see its details below.
             """)),
             html.Pre(id='click-data', style=styles['pre']),
         ], className='three columns')
     ])
 ])
-
 
 @app.callback(
     Output('click-data', 'children'),
@@ -70,7 +71,7 @@ def display_click_data(clickData):
     else:
         try:
             curve_num = clickData['points'][0]['curveNumber']
-            return df['id'].loc[curve_num]
+            return df['request_id'].loc[curve_num]
         except Exception as e:
             print e
             return "clickData exists, but there was an error"
@@ -78,6 +79,14 @@ def display_click_data(clickData):
     # return str(df['id'].loc(clickData['points'][0]['curveNumber']))
     return json.dumps(clickData['points'][0]["curveNumber"], indent=2)
 
+@app.callback(
+    Output(component_id='basic-interactions',component_property='figure'),
+    [Input(component_id='color_code', component_property='value')]
+)
+def recolor_graph(color_code):
+    global df
+    fig = create_gantt(df,color_code)
+    return fig
 
 if __name__ == '__main__':
     app.run_server()
