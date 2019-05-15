@@ -117,8 +117,7 @@ def get_input_data():
             config['target_ra'] = target.get_ra().degrees
             config['target_dec'] = target.get_dec().degrees
             # Input instrument configurations as JSON text blocks
-            config['instrument_configs'] = json.dumps(c['instrument_configs'],\
-                indent=2)
+            config['instrument_configs'] = c['instrument_configs']
             configurations.append(config)
         r['configurations'] = configurations
 

@@ -13,7 +13,10 @@ from gantt import configure_df_for_plotting, create_gantt
 df = configure_df_for_plotting(obtain_dataframe())
 fig = create_gantt(df)
 
-print "HERE"
+# Create unscheduled_dict
+unscheduled_requests = list(df.loc[df['scheduled'] == False]['request_id'])
+unscheduled_dict = [{'label':id,'value':id} for id in unscheduled_requests]
+unscheduled_dict.insert(0, {'label': 'None', 'value':'None'} )
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -36,8 +39,7 @@ app.layout = html.Div([
 
     # Could maybe add some general information here?
 
-    html.Div(
-        [
+    html.Div([
             dcc.Dropdown(
                 id="color_code",
                 options=[{'label':l,'value':v} for l,v in color_options.iteritems()],
@@ -51,6 +53,23 @@ app.layout = html.Div([
         id='basic-interactions',figure=fig,config={'displayModeBar': False}),
 
     html.Div(className='row', children=[
+
+
+        html.Div([
+            dcc.Markdown(d("""
+                **Unscheduled Requests**
+
+                Select an unscheduled requests from the dropdown below.
+            """)),
+            dcc.Dropdown(
+                id="unscheduled-dropdown",
+                options=unscheduled_dict,
+                value='None',
+                clearable=False),
+            ],
+            style={'width': '25%',
+                    'display': 'inline-block'}),
+
         html.Div([
             dcc.Markdown(d("""
                 **Request Data**
@@ -59,11 +78,12 @@ app.layout = html.Div([
             """)),
             html.Pre(id='click-data', style=styles['pre']),
         ], className='three columns')
+
     ])
 ])
 
 @app.callback(
-    Output('click-data', 'children'),
+    [Output('click-data', 'children'),Output('unscheduled-dropdown','value')],
     [Input('basic-interactions', 'clickData')])
 def display_click_data(clickData):
     if clickData == None:
@@ -71,11 +91,19 @@ def display_click_data(clickData):
     else:
         try:
             curve_num = clickData['points'][0]['curveNumber']
-            data = df.loc(df['curve']==curve_num, 'configurations').values[0]
-            return "json.dumps(data)"
+            print curve_num
+            config_data = df.loc[df['curve'] == curve_num]['configurations'].values[0]
+            return json.dumps(config_data,indent=2), 'None'
+            return "works to here though"
+            assert False
+            instrument_configs = config_data['instrument_configs']
+            return "works to here"
+            instrument_text = json.dumps(instrument_configs,indent=2)
+            return instrument_text
         except Exception as e:
             print e
-            return "clickData exists, but there was an error"
+            return "clickData exists, but there was an error. See terminal"
+
     # return clickData["points"][0]['curveNumber"']
     # return str(df['id'].loc(clickData['points'][0]['curveNumber']))
     return json.dumps(clickData['points'][0]["curveNumber"], indent=2)
@@ -90,4 +118,4 @@ def recolor_graph(color_code):
     return fig
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)
