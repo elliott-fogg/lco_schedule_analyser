@@ -1,5 +1,6 @@
 import json, webbrowser
 from textwrap import dedent as d
+from collections import OrderedDict as odict
 
 import dash
 import dash_core_components as dcc
@@ -16,43 +17,76 @@ fig = create_gantt(df)
 
 def create_display_dict(row):
     print "TRIGGERED"
-    dd = [
-        "Request Name: " + str(row['request_name']),
-        "Type: " + str(row['request_type']),
-        {
-            "Proposal:": [
-                "Name: " + str(row['proposal_name']),
-                "Priority: " + str(row['proposal_priority'])
-            ]
-        },
-        "IPP: " + str(row['ipp']),
-        "Duration: " + str(row['duration']),
-        "Total Priority (Proposal * IPP * Duration): " + str(row['priority_total']),
-        {
-            "Details:": [
-                "Acceptability Threshold: " + str(row['acceptability_threshold']),
-                {
-                    "Observation Windows:": row['windows']
-                },
-                {
-                    "Configurations:": row['configurations']
-                }
-            ]
-        }
-    ]
 
     if row['scheduled']:
-        scheduled_info = {
-            "Scheduled: ": [
-                "Start: " + str(row['start']),
-                "End: " + str(row['finish'])
-            ]
-        }
+        scheduled_info = odict()
+        scheduled_info['Start'] = row['start']
+        scheduled_info['Finish'] = row['finish']
     else:
-        scheduled_info = "Scheduled: No"
-    print "COMPLETE"
-    dd.append(scheduled_info)
-    return dd
+        scheduled_info = "No"
+
+    display_dict = {
+        "Request Name": row['request_name'],
+        "Type": row['request_type'],
+        "Proposal":{
+            "Name": row['proposal_name'],
+            "Priority": row['proposal_priority']
+        },
+        "IPP": row['ipp'],
+        "Duration": str(row['duration']) + " seconds",
+        "Total Priority (Proposal * IPP * Duration)": row['priority_total'],
+        "Details": {
+            "Acceptability Threshold": row['acceptability_threshold'],
+            "Observation Windows": row['windows'],
+            "Configurations": row['configurations']
+        },
+        "Scheduled": scheduled_info
+    }
+
+    display_keys = [
+        "Request Name","Type","Scheduled","Proposal","IPP","Duration",
+        "Total Priority","Details"
+    ]
+
+    return display_dict
+
+    # dd = [
+    #     "Request Name: " + str(row['request_name']),
+    #     "Type: " + str(row['request_type']),
+    #     {
+    #         "Proposal:": [
+    #             "Name: " + str(row['proposal_name']),
+    #             "Priority: " + str(row['proposal_priority'])
+    #         ]
+    #     },
+    #     "IPP: " + str(row['ipp']),
+    #     "Duration: " + str(row['duration']),
+    #     "Total Priority (Proposal * IPP * Duration): " + str(row['priority_total']),
+    #     {
+    #         "Details:": [
+    #             "Acceptability Threshold: " + str(row['acceptability_threshold']),
+    #             {
+    #                 "Observation Windows:": row['windows']
+    #             },
+    #             {
+    #                 "Configurations:": row['configurations']
+    #             }
+    #         ]
+    #     }
+    # ]
+    #
+    # if row['scheduled']:
+    #     scheduled_info = {
+    #         "Scheduled: ": [
+    #             "Start: " + str(row['start']),
+    #             "End: " + str(row['finish'])
+    #         ]
+    #     }
+    # else:
+    #     scheduled_info = "Scheduled: No"
+    # print "COMPLETE"
+    # dd.append(scheduled_info)
+    return display_dict
 
 # Create unscheduled_dict
 request_dict = []
