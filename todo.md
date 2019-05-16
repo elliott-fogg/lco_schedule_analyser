@@ -1,12 +1,12 @@
 # To-do
 
-## Get the collapsible tree up and running, based on examples.
-If this fails, dump out JSON information for selected observation, let user
-just scroll down the page.
+## Fix collapsible.py
+See TODO inside file.
 
 ## Determine relevant information and create relevant colour-coding functions
-
-## Hook colour-coding functions into the drop-down box
+Observation Type would be interesting (Normal, Time-Critical, Rapid-Repsonse)
+Also IPP (and proposal, so one could see it in the proposal)
+Would then need some way to compare to non-scheduled requests?
 
 ## If possible, highlight selected observations
 Make all other observations go slightly transparent when one is selected. Might
@@ -17,15 +17,9 @@ Maybe possible by redrawing (updating) the entire plot when one is selected?
 Could change the colour scheme so that it includes one 'selected' key, which is
 attributed to the selected value, and all other colours are reduced?
 
-## Add in method of accessing any observations that were not scheduled
-Need to check if this is the case for the current data (I think not), but even
-if not, might be needed/useful for future schedules.
-
 ## Attempt to remove the Undo buttons from the Dash page
 This might require some custom CSS
 
 ## Make the webpage open automatically upon running the `interactive.py` script
 
-## Merge Input and Output data together
-Extract relevant information from both files and correlate into the dataframe.
-Add a method of investigating unscheduled requests
+# Look at

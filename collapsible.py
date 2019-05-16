@@ -1,6 +1,11 @@
 import dash_html_components as html
 import json
 
+# TODO: Refactor this so it works by checking the contents of each object passed
+# to it, rather than the value of each object passed to it. This will allow for
+# writing final key:value pairs on one line, instead of having to pass them as
+# a string. Will also get around the need for an outer-list of numbers.
+
 def dict_to_collapsible(input_object):
     return extract_layer(input_object)
 
