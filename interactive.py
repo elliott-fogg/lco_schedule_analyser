@@ -16,7 +16,6 @@ df = configure_df_for_plotting(obtain_dataframe())
 fig = create_gantt(df)
 
 def create_display_dict(row):
-    print "TRIGGERED"
 
     if row['scheduled']:
         scheduled_info = odict()
@@ -25,67 +24,21 @@ def create_display_dict(row):
     else:
         scheduled_info = "No"
 
-    display_dict = {
-        "Request Name": row['request_name'],
-        "Type": row['request_type'],
-        "Proposal":{
-            "Name": row['proposal_name'],
-            "Priority": row['proposal_priority']
-        },
-        "IPP": row['ipp'],
-        "Duration": str(row['duration']) + " seconds",
-        "Total Priority (Proposal * IPP * Duration)": row['priority_total'],
-        "Details": {
-            "Acceptability Threshold": row['acceptability_threshold'],
-            "Observation Windows": row['windows'],
-            "Configurations": row['configurations']
-        },
-        "Scheduled": scheduled_info
-    }
+    display_dict = odict()
+    display_dict['Request Name'] = row['request_name']
+    display_dict['Type'] = row['request_type']
+    display_dict['Scheduled'] = scheduled_info
+    display_dict['Proposal'] = odict()
+    display_dict['Proposal']['Name'] = row['proposal_name']
+    display_dict['Proposal']['Priority'] = row['proposal_priority']
+    display_dict['IPP'] = row['ipp']
+    display_dict['Duration'] = str(row['duration']) + " seconds"
+    display_dict['Total Priority (Proposal * IPP * Duration)'] = row['priority_total']
+    display_dict['Details'] = odict()
+    display_dict['Details']['Acceptability Threshold'] = row['acceptability_threshold']
+    display_dict['Details']['Observation Windows'] = row['windows']
+    display_dict['Details']['Configurations'] = row['configurations']
 
-    display_keys = [
-        "Request Name","Type","Scheduled","Proposal","IPP","Duration",
-        "Total Priority","Details"
-    ]
-
-    return display_dict
-
-    # dd = [
-    #     "Request Name: " + str(row['request_name']),
-    #     "Type: " + str(row['request_type']),
-    #     {
-    #         "Proposal:": [
-    #             "Name: " + str(row['proposal_name']),
-    #             "Priority: " + str(row['proposal_priority'])
-    #         ]
-    #     },
-    #     "IPP: " + str(row['ipp']),
-    #     "Duration: " + str(row['duration']),
-    #     "Total Priority (Proposal * IPP * Duration): " + str(row['priority_total']),
-    #     {
-    #         "Details:": [
-    #             "Acceptability Threshold: " + str(row['acceptability_threshold']),
-    #             {
-    #                 "Observation Windows:": row['windows']
-    #             },
-    #             {
-    #                 "Configurations:": row['configurations']
-    #             }
-    #         ]
-    #     }
-    # ]
-    #
-    # if row['scheduled']:
-    #     scheduled_info = {
-    #         "Scheduled: ": [
-    #             "Start: " + str(row['start']),
-    #             "End: " + str(row['finish'])
-    #         ]
-    #     }
-    # else:
-    #     scheduled_info = "Scheduled: No"
-    # print "COMPLETE"
-    # dd.append(scheduled_info)
     return display_dict
 
 # Create unscheduled_dict
@@ -148,19 +101,6 @@ app.layout = html.Div([
         ),
 
         html.Div(
-            [
-                dcc.Markdown(d("""
-                    **Request Data**
-
-                    Click on a request to see its details below.
-                """)),
-                html.Pre(id='click-data', style=styles['pre'])
-            ],
-            style={'width':'25%', 'display':'inline-block'},
-            className='column'
-        ),
-
-        html.Div(
             id='collapsible-info',
             children=dict_to_collapsible(test_dict),
             style={'width':'25%', 'display':'inline-block'},
@@ -169,6 +109,8 @@ app.layout = html.Div([
 
     ])
 ])
+
+##### Callback Functions #######################################################
 
 # Click on a Scheduled Observation
 @app.callback(
@@ -187,27 +129,6 @@ def display_click_data(clickData):
             print e
             click_id = 'None'
     return click_id
-
-# # Select Observation from Dropdown List
-# @app.callback(
-#     Output('click-data', 'children'),
-#     [Input('unscheduled-dropdown', 'value')]
-# )
-# def display_click_data(request_id):
-#     if request_id == 'None':
-#         output_text = 'No request selected'
-#     else:
-#         try:
-#             selected_row = df.loc[df['request_id'] == request_id].reset_index(\
-#                 drop=True).to_dict('index')[0]
-#             display_dict = create_display_dict(selected_row)
-#             print display_dict
-#             config_data = df.loc[df['request_id'] == request_id]['request_id'].values[0]
-#             output_text = json.dumps(config_data,indent=1)
-#         except Exception as e:
-#             print e
-#             output_text = "clickData does exist, but there was an error"
-#     return output_text
 
 # Select Observation from Dropdown List
 @app.callback(
@@ -236,6 +157,8 @@ def recolor_graph(color_code):
     global df
     fig = create_gantt(df,color_code)
     return fig
+
+################################################################################
 
 if __name__ == '__main__':
     app.run_server(debug=True)
