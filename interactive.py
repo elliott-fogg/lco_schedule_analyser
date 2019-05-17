@@ -21,13 +21,15 @@ def create_display_dict(row):
         scheduled_info = odict()
         scheduled_info['Start'] = row['start']
         scheduled_info['Finish'] = row['finish']
+        scheduled_key = 'Scheduled: Yes'
     else:
         scheduled_info = "No"
+        scheduled_key = 'Scheduled'
 
     display_dict = odict()
     display_dict['Request Name'] = row['request_name']
     display_dict['Type'] = row['request_type']
-    display_dict['Scheduled'] = scheduled_info
+    display_dict[scheduled_key] = scheduled_info
     display_dict['Proposal'] = odict()
     display_dict['Proposal']['Name'] = row['proposal_name']
     display_dict['Proposal']['Priority'] = row['proposal_priority']
@@ -62,7 +64,8 @@ styles = {
 
 color_options = {
     'ID': 'id',
-    'Proposal Priority': 'proposal'
+    'Proposal Priority': 'proposal',
+    'IPP': 'ipp'
     }
 
 app.layout = html.Div([
