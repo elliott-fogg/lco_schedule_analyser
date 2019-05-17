@@ -2,7 +2,7 @@ import plotly.offline as py
 import plotly.figure_factory as ff
 import pandas as pd
 from numpy import nan as NAN
-from colorsys import hsv_to_rgb
+from colorsys import hsv_to_rgb, yiq_to_rgb
 import json, datetime
 
 # Add the necessary plotting information to the dataframe
@@ -69,7 +69,7 @@ def create_gantt(df,color_code='id'):
 
     df_plot = df[df['scheduled']]
 
-    ##### color-Coding functions #########################################
+    ##### Basic Color Functions ##########################################
 
     def spaced_colors(n):
         colors = [
@@ -78,12 +78,11 @@ def create_gantt(df,color_code='id'):
         ]
         return colors
 
-    def scaled_colors(n):
-        colors = [
-            [ int(c * 255) for c in hsv_to_rgb(1,float(i) / (n-1),1) ] \
-            for i in range(n)
-        ]
-        return colors
+    def scale_color(p):
+        i_val = p  - 0.5
+        return [ int(c * 255) for c in yiq_to_rgb(1,i_val,0.5) ]
+
+    ##### Color-Coding Functions #########################################
 
     def color_by_id(df, color_key):
         id_max = df['request_id'].max()
@@ -95,11 +94,9 @@ def create_gantt(df,color_code='id'):
             red_val = int(((i - id_min) / float(num_values)) * 255.)
             color = "rgb({}, 0, 0)".format(red_val)
             color_map[i] = color
-
         return color_map
 
     def unique_colors(df,color_key):
-        # Custom curated
         v = df[color_key].unique()
         n = len(v)
         c = spaced_colors(n)
@@ -111,9 +108,28 @@ def create_gantt(df,color_code='id'):
 
         return color_map
 
+    def ipp_colors(df,color_key):
+        v_max = df[color_key].max()
+        v_min = df[color_key].min()
+        v_list = df[color_key].unique()
+
+        color_map = {}
+        for value in v_list:
+            proportion = ((value - v_min) / (v_max - v_min))
+            print value, proportion
+            c = scale_color(proportion)
+            print c
+            rgb = "rgb({}, {}, {})".format(c[0],c[1],c[2])
+            print rgb
+            color_map[value] = rgb
+
+        return color_map
+
+
     color_code_dict = {
         'id': [color_by_id,'request_id'],
         'proposal': [unique_colors,'proposal_priority'],
+        'ipp': [ipp_colors,'ipp']
     }
 
     def colormap(df,color_code):
