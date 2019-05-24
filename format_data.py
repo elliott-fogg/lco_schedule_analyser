@@ -1,8 +1,8 @@
 import json
 import pandas as pd
 
-input_filepath = "../data/input_request_data.json"
-output_filepath = "../data/normal_schedule_20190416024632.json"
+input_filepath = "data/input_request_data.json"
+output_filepath = "data/normal_schedule_20190416024632.json"
 
 # Get all relevant information from the Scheduler Output
 def get_output_data():
