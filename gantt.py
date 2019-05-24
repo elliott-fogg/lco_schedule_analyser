@@ -177,4 +177,4 @@ if __name__ == "__main__":
     df = configure_df_for_plotting(df)
     fig = create_gantt(df,'id')
     # print json.dumps(fig)
-    # py.plot(fig, filename='../data/gantt_test_chart.html')
+    py.plot(fig, filename='plots/gantt_test_chart.html')
