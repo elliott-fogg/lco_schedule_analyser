@@ -11,6 +11,7 @@ import plotly.figure_factory as ff
 from format_data import *
 from gantt import configure_df_for_plotting, create_gantt
 from collapsible import dict_to_collapsible, test_dict
+from contention_pressure import contention
 
 df = configure_df_for_plotting(obtain_dataframe())
 fig = create_gantt(df)
@@ -81,6 +82,17 @@ app.layout = html.Div([
                 clearable=False),
         ],
         style={'width':'25%', 'display':'inline-block'}),
+
+    html.Div([
+        html.Details([
+            html.Summary("Contention Plot"),
+            dcc.Graph(
+                id="contention-chart",
+                figure=contention(df),
+                config={'displayModeBar': False}
+            )
+        ])
+    ]),
 
     dcc.Graph(
         id='gantt-chart',figure=fig,config={'displayModeBar': False}),
