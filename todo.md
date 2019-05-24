@@ -1,8 +1,5 @@
 # To-do
 
-## Fix collapsible.py
-See TODO inside file.
-
 ## Determine relevant information and create relevant colour-coding functions
 Observation Type would be interesting (Normal, Time-Critical, Rapid-Repsonse)
 Also IPP (and proposal, so one could see it in the proposal)
@@ -21,5 +18,3 @@ attributed to the selected value, and all other colours are reduced?
 This might require some custom CSS
 
 ## Make the webpage open automatically upon running the `interactive.py` script
-
-# Look at
