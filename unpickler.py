@@ -36,7 +36,7 @@ def load_json_file(filepath):
 
 def save_json_file(data, filepath):
     with open(filepath, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
     print("Saved data as JSON at '{}'".format(filepath))
 
 ### Converting Pickled files to JSON-serializable objects ######################
@@ -48,7 +48,6 @@ def convert_to_json(input_value):
             output_value[str(key)] = convert_to_json(input_value[key])
 
     elif isinstance(input_value, list):
-        # print "LIST"
         output_value = []
         for item in input_value:
             output_value.append(convert_to_json(item))
@@ -58,7 +57,8 @@ def convert_to_json(input_value):
             attributes = input_value.__dict__
             output_value = {attr:convert_to_json(val) for
                 attr, val in attributes.items()}
-            output_value["__TYPE__"] = "{}".format(input_value)
+            output_value["__TYPE__"] = str(type(input_value))
+            output_value["__AS_STRING__"] = "{}".format(input_value)
 
         except AttributeError:
             output_value = make_string(input_value)
