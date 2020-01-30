@@ -54,7 +54,7 @@ def convert_to_json(input_value):
 
     else:
         try:
-            attributes = input_value.__dict__
+            attributes = vars(input_value)
             output_value = {attr:convert_to_json(val) for
                 attr, val in attributes.items()}
             output_value["__TYPE__"] = str(type(input_value))
