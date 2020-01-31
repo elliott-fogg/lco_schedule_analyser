@@ -4,6 +4,69 @@ import pandas as pd
 input_filepath = "data/input_request_data.json"
 output_filepath = "data/normal_schedule_20190416024632.json"
 
+def read_output_file(filepath):
+    if not filepath.endswith(".json"):
+        print("ERROR: File is not of type .json: '{}'".format(filepath))
+        return None
+
+    data = unpickler.load_json_file(filepath)
+
+    ############################################################################
+    # Is the following code segment necessary at all? Is it useful?
+    ############################################################################
+    #
+    # semester_id = data['semester_id']
+    # schedule_start = data['schedule_start']
+    # schedule_end = data['schedule_end']
+    # horizon_days = data['horizon_days']
+    # total_priority = data['total_priority_value']
+    #
+    # telescope_name = "4m0a.doma.sor"
+    # telescope_info = data['resources'][telescope_name]
+    # telescope_priority = telescope_info['priority_value']
+    # dark_intervals = telescope_info['dark_intervals']
+    #
+    ############################################################################
+
+    # NOTE: The following code format will need to be used to extract all
+    # information when multiple telescopes are used.
+
+    # scheduled_requests = {}
+    # for telescope in data['resources']:
+    #     telescope_requests = []
+    #     for r in data['resources'][telescope]:
+    #         # Stuff goes here
+    #         telescope_requests.append(r_dict)
+    #     scheduled_requests[telescope] = telescope_requests
+
+    scheduled_reqs = []
+    for r in data['resources']['4m0a.doma.sor']:
+        r_dict = {}
+        start_dt = datetime.datetime.strptime(r['start'], "%Y-%m-%dT%H:%M:%S")
+        end_dt = datetime.datetime.strptime(r['end'], "%Y-%m-%dT%H:%M:%S")
+
+        r_dict['id'] = r['request_id']
+
+        r_dict['start_string'] = datetime.datetime.strftime(start_dt,
+            "%Y-%m-%d %H:%M:%S")
+        r_dict['end_string'] = datetime.datetime.strftime(end_dt,
+            "%Y-%m-%d %H:%M:%S")
+
+        r_dict['start_time'] = datetime.datetime.strftime(start_dt,
+            "H:%M:%S")
+        r_dict['end_time'] = datetime.datetime.strftime(end_dt,
+            "H:%M:%S")
+
+        r_dict['start_date'] = datetime.datetime.strftime(start_dt,
+            "%Y-%m-%d")
+        r_dict['end_date'] = datetime.datetime.strftime(end_dt,
+            "%Y-%m-%d")
+
+        scheduled_reqs.append(r_dict)
+
+    return scheduled_reqs
+    # NOTE: Why is anything else relevant in this function???
+
 # Get all relevant information from the Scheduler Output
 def get_output_data():
     filename = output_filepath
