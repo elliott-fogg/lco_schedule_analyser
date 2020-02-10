@@ -12,6 +12,7 @@ def get_scheduler_directory():
 def load_scheduler_directory(scheduler_directory):
     sys.path.insert(0, scheduler_directory)
     import adaptive_scheduler
+    print("Imported Adaptive Scheduler")
 
 ### Load and Save files ########################################################
 
