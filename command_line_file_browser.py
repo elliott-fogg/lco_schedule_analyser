@@ -33,10 +33,11 @@ def file_browser():
         else:
             final_item = os.path.abspath(pjoin(current_path, selected_item))
             print("You have selected '{}'".format(final_item))
-            yesno = input("Is this correct? [y/N]")
+            yesno = raw_input("Is this correct? [Y/n]")
             if yesno in "yY":
                 return final_item
             else:
+                print("")
                 continue
 
 
