@@ -1,6 +1,10 @@
 import sys
 import os
 import argparse
+from command_line_file_browser import file_browser
+from format_data import obtain_dataframe
+
+##### Deal with command line arguments, and select files #######################
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
 default_path = os.path.join(file_dir, "sample_files/sample_input.json")
@@ -10,14 +14,19 @@ default_output_filepath = "data/normal_schedule_20190416024632.json"
 
 def parse_args():
     arg_parser = argparse.ArgumentParser(
-        description="Argument parser for something or other?"
-    )
+        description="Argument parser for something or other?")
 
-    arg_parser.add_argument("file_location", nargs="*",
-        help="provide a filepath for an input file")
+    arg_parser.add_argument("-i", "--input", type=str, default=None,
+        help="Provide filepath to an input file.")
+
+    arg_parser.add_argument("-o", "--output", type=str, default=None,
+        help="Provide filepath to an output file.")
 
     arg_parser.add_argument("-s","--select", action="store_true",
-        help="manually select a file from a TKinter screen")
+        help="Manually select a file from a TKinter screen")
+
+    arg_parser.add_argument("-d", "--default", action="store_true",
+        help="Use the default sample files.")
 
     args, unknown = arg_parser.parse_known_args()
 
@@ -27,42 +36,38 @@ def parse_args():
         print("Unknown Args: {}".format(unknown))
         print(args)
 
-    if args.select:
-        # print("Open Tkinter dialog box")
-        print("The --select option has not yet been implemented.")
+    if args.default:
+        input_filepath = os.path.join(file_dir, "sample_files/sample_input.pickle")
+        output_filepath = os.path.join(file_dir, "sample_files/sample_output.json")
 
-        # This is proving a little harder than anticipated.
-        # Possible options:
-            # Manage to incorporate the system-installed tkinter into the
-            #   virtualenv, by using --include-site-packages. Unknown if this
-            #   will unintentionally taint the virtualenv.
-            # Create a command-line based file explorer tool. Not the most
-            #   desirable. Potentially pointless, but allows for not typing
-            #   everything out.
-            # Give up, just manually type the relative path to the file as a
-            #   command line argument. We'll leave it with this for now.
-
-    # else:
-    if len(args.file_location) == 1:
-        filepath = os.path.join(file_dir, args.file_location[0])
-        if os.path.isfile(filepath) and filepath.endswith(".json"):
-            print("Using file '{}'".format(filepath))
-            return filepath
-
-        else:
-            print("Provided file is invalid: '{}'".format(filepath))
-            return None
+    elif (args.input != None) and (args.output != None) and not args.select:
+        input_filepath = args.input
+        output_filepath = args.output
 
     else:
-        filepath = default_path
-        if os.path.isfile(filepath) and filepath.endswith(".json"):
-            print("Using default file '{}'".format(filepath))
-            return filepath
+        print("Please select an input file:")
+        input_filepath = file_browser()
+        print("\nPlease select an output file:")
+        output_filepath = file_browser()
 
+    if not os.path.isfile(input_filepath):
+        if os.path.isfile(os.path.join(file_dir, input_filepath)):
+            input_filepath = os.path.join(file_dir, input_filepath)
         else:
-            print("Default filepath is invalid: '{}'".format(filepath))
-            return None
+            print("ERROR: Input file not valid - '{}'".format(input_filepath))
+            return
+
+    if not os.path.isfile(output_filepath):
+        if os.path.isfile(os.path.join(file_dir, output_filepath)):
+            output_filepath = os.path.join(file_dir, output_filepath)
+        else:
+            print("ERROR: Output file not valid - '{}'".format(output_filepath))
+            return
+
+    return (input_filepath, output_filepath)
+
 
 if __name__ == '__main__':
-    filepath = parse_args()
+    input, output = parse_args()
+    df = obtain_dataframe(input, output)
     print("Complete")
