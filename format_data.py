@@ -1,8 +1,8 @@
-import json
+import json, os
 import pandas as pd
 
-input_filepath = "data/input_request_data.json"
-output_filepath = "data/normal_schedule_20190416024632.json"
+input_filepath = os.getcwd() + "/../data_files/.json"
+output_filepath = os.getcwd() + "/../data_files/sample_output.json"
 
 # Get all relevant information from the Scheduler Output
 def get_output_data():
@@ -47,6 +47,7 @@ def get_input_data():
     data = load_pickled_file()
 
     # Overview information
+    print("YO", data)
     available_telescopes = data['available_resources']
     semester_details = data['semester_details']
 

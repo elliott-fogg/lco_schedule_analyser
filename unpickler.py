@@ -1,9 +1,10 @@
 import pickle, sys, io, contextlib, json, os
 
 cwd = os.getcwd()
-pickled_file = "data/scheduling_input_20190416024630.pickle"
-json_output_file = "data/input_request_data.json"
-adaptive_scheduler_directory = cwd + "/../lco_repos/adaptive_scheduler"
+pickled_file = cwd + "/../data_files/sample_input.pickle"
+json_output_file = cwd + "/../data_files/sample_output.json"
+adaptive_scheduler_directory = cwd + "/../scheduler/"
+print(os.path.abspath(adaptive_scheduler_directory))
 
 def load_pickled_file():
     """
@@ -15,17 +16,20 @@ def load_pickled_file():
     import adaptive_scheduler
     objects = []
     with open(pickled_file,"rb") as openfile:
-        while True:
-            try:
-                objects.append(pickle.load(openfile))
-            except EOFError:
-                break
-            except Exception as e:
-                print "TRIGGERED"
-                print e
-                return e
+        objects.append(pickle.load(openfile))
+
+        # while True:
+        #     try:
+        #         objects.append(pickle.load(openfile))
+        #     except EOFError:
+        #         break
+        #     except Exception as e:
+        #         print "TRIGGERED"
+        #         print e
+        #         return e
 
     data = objects[0]
+    # print(data)
     return data
 
 ##### Additional Functions #####################################################

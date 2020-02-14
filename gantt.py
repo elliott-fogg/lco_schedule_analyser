@@ -143,6 +143,9 @@ def create_gantt(df,color_code='id'):
 
     colors, color_key = colormap(df_plot, color_code)
 
+    global OBJECT_VAR
+    OBJECT_VAR = df_plot
+
     df_plot = df_plot.reset_index(drop=True)
 
     fig = ff.create_gantt(df_plot, title='Example SOAR Schedule', \
@@ -151,8 +154,10 @@ def create_gantt(df,color_code='id'):
 
     ##### Final Layout Modifications ######################################
 
+    print(len(df_plot))
+
     # Modify the hovertext
-    for k in range(len(fig['data'])):
+    for k in range(len(df_plot['hovertext'])):
         text = df_plot['hovertext'].loc[k]
         fig['data'][k].update(text=text,hoverinfo="text")
 
@@ -163,8 +168,8 @@ def create_gantt(df,color_code='id'):
     fig['layout']['xaxis']['rangeselector']['visible'] = False
 
     # Reenable autosizing
-    del fig['layout']['height']
-    del fig['layout']['width']
+    # del fig['layout']['height']
+    # del fig['layout']['width']
 
     return fig
 
