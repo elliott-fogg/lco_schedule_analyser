@@ -80,19 +80,9 @@ def read_output_file(filepath):
 
             r_dict = {}
             r_dict['telescope'] = telescope
-            start_dt = datetime.strptime(r['start'], "%Y-%m-%dT%H:%M:%S")
-            end_dt = datetime.strptime(r['end'], "%Y-%m-%dT%H:%M:%S")
-
+            r_dict['start_dt'] = datetime.strptime(r['start'], "%Y-%m-%dT%H:%M:%S")
+            r_dict['end_dt'] = datetime.strptime(r['end'], "%Y-%m-%dT%H:%M:%S")
             r_dict['id'] = r['request_id']
-
-            r_dict['start_string'] = start_dt.strftime("%Y-%m-%d %H:%M:%S")
-            r_dict['end_string'] = end_dt.strftime("%Y-%m-%d %H:%M:%S")
-
-            r_dict['start_time'] = start_dt.strftime("%H:%M:%S")
-            r_dict['end_time'] = end_dt.strftime("%H:%M:%S")
-
-            r_dict['start_date'] = start_dt.strftime("%Y-%m-%d")
-            r_dict['end_date'] = end_dt.strftime("%Y-%m-%d")
 
             scheduled_requests.append(r_dict)
 
@@ -106,7 +96,7 @@ def obtain_dataframe(input_file=input_filepath, output_file=output_filepath):
 
     df = requests_df.join(scheduled_df.set_index('id'), on='request_id')
 
-    df['scheduled'] = df['start_date'].notnull()
+    df['scheduled'] = df['telescope'].notnull()
 
     return df
 
