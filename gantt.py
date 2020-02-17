@@ -7,6 +7,8 @@ import json, datetime
 
 # Add the necessary plotting information to the dataframe
 def configure_df_for_plotting(df):
+    import pickle
+    pickle.dump(df, open("temp_df.tmp", "wb"))
 
     ##### Pandas manipulation functions ###################################
     def nominal_date(str_date):
@@ -60,6 +62,8 @@ def configure_df_for_plotting(df):
         ascending=False).reset_index(drop=True)
     df['curve'] = df.index
     df.loc[df['scheduled'] == False, 'curve'] = NAN
+
+    pickle.dump(df, open("temp_df2.tmp", "wb"))
 
     return df
 
@@ -116,7 +120,7 @@ def create_gantt(df,color_code='id'):
         color_map = {}
         for value in v_list:
             proportion = ((value - v_min) / (v_max - v_min))
-            print value, proportion
+            # print value, proportion
             c = scale_color(proportion)
             print c
             rgb = "rgb({}, {}, {})".format(c[0],c[1],c[2])

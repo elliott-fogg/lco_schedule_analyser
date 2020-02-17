@@ -47,7 +47,7 @@ def get_input_data():
     data = load_pickled_file()
 
     # Overview information
-    print("YO", data)
+    # print("YO", data)
     available_telescopes = data['available_resources']
     semester_details = data['semester_details']
 
