@@ -10,9 +10,9 @@ from colorsys import hsv_to_rgb, yiq_to_rgb
 import json
 import datetime as dt
 
-def gantt_single_telescope(df, color_code="id"):
+#### Single Telescope ##########################################################
 
-    #### Pandas DataFrame Manipulation #####################################
+def single_telescope_configure_df(df):
 
     def nominal_start(dt_obj):
         date_format = "%Y-%m-%d"
@@ -34,11 +34,23 @@ def gantt_single_telescope(df, color_code="id"):
         return "ID: {}\n\nStart: {}\n\nEnd: {}".format(
             row['request_id'], row['start_dt'], row['end_dt'])
 
-    #### Creating the Gantt Plot ###########################################
+    df.loc[ df['scheduled'], 'Task'] = \
+        df.loc[df['scheduled']]['start_dt'].apply(nominal_start)
+    df.loc[df['scheduled'], 'Start'] = \
+        df.loc[df['scheduled']]['start_dt'].apply(nominal_datetime)
+    df.loc[df['scheduled'], 'Finish'] = \
+        df.loc[df['scheduled']]['end_dt'].apply(nominal_datetime)
 
-    def gantt_plot(df):
+    df['hovertext'] = df.apply(set_hovertext, axis=1)
+    df.sort_values(by="scheduled", ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.loc[df['scheduled'], 'curve'] = df[df['scheduled']].index
+
+    return df
+
+def single_telescope_plot_gantt(df, color_code="id"):
         df_plot = df[ df['scheduled'] ]
-        # df_plot.reset_index(drop=True, inplace=True)
+        df_plot.reset_index(drop=True, inplace=True)
         colors, color_key = colormap(df_plot, color_code)
 
         fig = figure_factory.create_gantt(df_plot, title="Example SOAR Schedule",
@@ -56,9 +68,6 @@ def gantt_single_telescope(df, color_code="id"):
         # Remove rangeselector buttons
         fig['layout']['xaxis']['rangeselector']['visible'] = False
 
-        print(type(fig))
-        print(type(fig['layout']))
-
         # Reenable autosizing
         # if 'height' in fig['layout']:
         #     del fig['layout']['height']
@@ -67,23 +76,80 @@ def gantt_single_telescope(df, color_code="id"):
 
         return fig
 
-    ########################################################################
-
-    df.loc[ df['scheduled'], 'Task'] = \
-        df.loc[df['scheduled']]['start_dt'].apply(nominal_start)
-    df.loc[df['scheduled'], 'Start'] = \
-        df.loc[df['scheduled']]['start_dt'].apply(nominal_datetime)
-    df.loc[df['scheduled'], 'Finish'] = \
-        df.loc[df['scheduled']]['end_dt'].apply(nominal_datetime)
-
-    df['hovertext'] = df.apply(set_hovertext, axis=1)
-    df.sort_values(by="scheduled", ascending=False, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    df.loc[df['scheduled'], 'curve'] = df[df['scheduled']].index
-
-    fig = gantt_plot(df)
-
-    return (fig, df)
+# def gantt_single_telescope(df, color_code="id"):
+#
+#     #### Pandas DataFrame Manipulation #####################################
+#
+#     def nominal_start(dt_obj):
+#         date_format = "%Y-%m-%d"
+#         nominal_start = dt_obj
+#         if dt_obj.time() < dt.time(12):
+#             nominal_start -= dt.timedelta(days=1)
+#         return nominal_start.strftime(date_format)
+#
+#     def nominal_datetime(dt_obj):
+#         datetime_format = "%Y-%m-%d %H:%M:%S"
+#         nominal_datetime = dt_obj.replace(2000,1,1)
+#         if dt_obj.time() < dt.time(12):
+#             nominal_datetime += dt.timedelta(days=1)
+#         return nominal_datetime.strftime(datetime_format)
+#
+#     def set_hovertext(row):
+#         if not row['scheduled']:
+#             return NAN
+#         return "ID: {}\n\nStart: {}\n\nEnd: {}".format(
+#             row['request_id'], row['start_dt'], row['end_dt'])
+#
+#     #### Creating the Gantt Plot ###########################################
+#
+#     def gantt_plot(df):
+#         df_plot = df[ df['scheduled'] ]
+#         # df_plot.reset_index(drop=True, inplace=True)
+#         colors, color_key = colormap(df_plot, color_code)
+#
+#         fig = figure_factory.create_gantt(df_plot, title="Example SOAR Schedule",
+#         showgrid_x=True, showgrid_y = True, group_tasks=True,
+#         colors = colors, index_col = color_key)
+#
+#         # Modify the hovertext
+#         for k in range(len(df_plot['hovertext'])):
+#             text = df_plot['hovertext'].iloc[k]
+#             fig['data'][k].update(text=text, hoverinfo="text")
+#
+#         # Change axes labels to only use times
+#         fig['layout']['xaxis']['tickformat'] = "%H:%M%p"
+#
+#         # Remove rangeselector buttons
+#         fig['layout']['xaxis']['rangeselector']['visible'] = False
+#
+#         print(type(fig))
+#         print(type(fig['layout']))
+#
+#         # Reenable autosizing
+#         # if 'height' in fig['layout']:
+#         #     del fig['layout']['height']
+#         # if 'width' in fig['layout']:
+#         #     del fig['layout']['width']
+#
+#         return fig
+#
+#     ########################################################################
+#
+#     df.loc[ df['scheduled'], 'Task'] = \
+#         df.loc[df['scheduled']]['start_dt'].apply(nominal_start)
+#     df.loc[df['scheduled'], 'Start'] = \
+#         df.loc[df['scheduled']]['start_dt'].apply(nominal_datetime)
+#     df.loc[df['scheduled'], 'Finish'] = \
+#         df.loc[df['scheduled']]['end_dt'].apply(nominal_datetime)
+#
+#     df['hovertext'] = df.apply(set_hovertext, axis=1)
+#     df.sort_values(by="scheduled", ascending=False, inplace=True)
+#     df.reset_index(drop=True, inplace=True)
+#     df.loc[df['scheduled'], 'curve'] = df[df['scheduled']].index
+#
+#     fig = gantt_plot(df)
+#
+#     return (fig, df)
 
 
 #### Color Functions ###########################################################
@@ -148,8 +214,9 @@ def ipp_colors(df,color_key):
 
 color_code_dict = {
     'id': [color_by_id,'request_id'],
+    'id_default': [color_by_id, 'request_id'],
     'proposal': [unique_colors,'proposal_priority'],
-    'ipp': [ipp_colors,'ipp']
+    'ipp': [ipp_colors,'ipp_value']
 }
 
 def colormap(df,color_code):
@@ -173,9 +240,8 @@ def gantt_multi_telescope(df, color_code='id'):
 ################################################################################
 
 if __name__ == "__main__":
-    from format_data import *
-    df = obtain_dataframe()
-    fig, formatted_df = gantt_single_telescope(df)
-    print(type(fig))
-    print(type(formatted_df))
+    from format_data import obtain_dataframe
+    orig_df = obtain_dataframe()
+    df = single_telescope_configure_df(orig_df)
+    fig = single_telescope_plot_gantt(df)
     py.plot(fig, filename='plots/gantt_test_chart.html')
