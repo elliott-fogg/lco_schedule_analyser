@@ -1,5 +1,5 @@
 import dash_html_components as html
-from dash_html_components import Strong, Em
+from collections import OrderedDict
 import json
 
 def dict_to_collapsible(input_object):
@@ -32,17 +32,21 @@ def extract_layer(input_object,indents=0):
 
     if isinstance(input_object,dict):
         content_list = []
-        for key,value in input_object.viewitems():
+        if type(input_object) == OrderedDict:
+            itemview = input_object.viewitems()
+        else:
+            itemview = sorted(input_object.viewitems())
+        for key, value in itemview:
             if isinstance(value,dict) or isinstance(value,list):
                 content_list.append(
                     html.Details([
-                        html.Summary(Em(Strong(str(key)))),
+                        html.Summary(html.Em(html.Strong(str(key)))),
                         extract_layer(value,indents+1)
                     ],open=open_on_default)
                 )
             else:
                 try:
-                    string_value = [Strong(str(key)),": {}".format(value)]
+                    string_value = [html.Strong(str(key)),": {}".format(value)]
                 except:
                     string_value = "!ERROR! - Non-dict object could not " +\
                         "become String - Type = {}".format(type(input_object))
@@ -50,7 +54,7 @@ def extract_layer(input_object,indents=0):
                 content_list.append( html.P(string_value) )
     else:
         # ERROR: Something has gone wrong here. Only Dicts/lists should be passed
-        # to this file.
+        # to this function.
         content_list = [html.P("!Error! Not list or dict: {}".format(\
             type(input_object)))]
 
