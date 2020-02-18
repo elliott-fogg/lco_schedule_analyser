@@ -3,6 +3,7 @@ import os
 import argparse
 from command_line_file_browser import file_browser
 from format_data import obtain_dataframe
+from interactive import single_telescope
 
 ##### Deal with command line arguments, and select files #######################
 
@@ -30,7 +31,7 @@ def parse_args():
 
     args, unknown = arg_parser.parse_known_args()
 
-    print(args)
+    # print(args)
 
     if len(unknown) > 0:
         print("Unknown Args: {}".format(unknown))
@@ -69,5 +70,9 @@ def parse_args():
 
 if __name__ == '__main__':
     input, output = parse_args()
-    df = obtain_dataframe(input, output)
-    print("Complete")
+    input_filepath = "sample_files/sample_input.pickle"
+    output_filepath = "sample_files/sample_output.json"
+    single_telescope(input_filepath, output_filepath)
+
+    # df = obtain_dataframe(input, output)
+    # print("Complete")
