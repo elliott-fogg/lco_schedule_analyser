@@ -52,6 +52,7 @@ def read_input_file(filepath):
                 config['subrequest_id'] = c['id']
                 config['instrument_type'] = c['instrument_type']
                 config['config_priority'] = c['priority']
+                config['config_type'] = c['type']
                 # Target Information
                 target = c['target']
                 config['target_name'] = target.name
