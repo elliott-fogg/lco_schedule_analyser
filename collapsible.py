@@ -32,7 +32,7 @@ def extract_layer(input_object,indents=0):
 
     if isinstance(input_object,dict):
         content_list = []
-        for key,value in input_object.viewitems():
+        for key,value in input_object.items():
             if isinstance(value,dict) or isinstance(value,list):
                 content_list.append(
                     html.Details([
@@ -81,4 +81,4 @@ test_dict = {
 ################################################################################
 
 if __name__ == "__main__":
-    print extract_layer(test_dict)
+    print(extract_layer(test_dict))

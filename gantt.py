@@ -39,7 +39,7 @@ def configure_df_for_plotting(df):
                 old_col = kwargs[new_col]
                 df[new_col] = df[old_col]
         except Exception as e:
-            print e
+            print(e)
         return df
 
     def set_hovertext(id,start,finish):
@@ -116,11 +116,11 @@ def create_gantt(df,color_code='id'):
         color_map = {}
         for value in v_list:
             proportion = ((value - v_min) / (v_max - v_min))
-            print value, proportion
+            print(value, proportion)
             c = scale_color(proportion)
-            print c
+            print(c)
             rgb = "rgb({}, {}, {})".format(c[0],c[1],c[2])
-            print rgb
+            print(rgb)
             color_map[value] = rgb
 
         return color_map
@@ -152,9 +152,9 @@ def create_gantt(df,color_code='id'):
     ##### Final Layout Modifications ######################################
 
     # Modify the hovertext
-    for k in range(len(fig['data'])):
-        text = df_plot['hovertext'].loc[k]
-        fig['data'][k].update(text=text,hoverinfo="text")
+    # for k in range(len(fig['data'])):
+    #     text = df_plot['hovertext'].loc[k]
+    #     fig['data'][k].update(text=text,hoverinfo="text")
 
     # Change axes labels to only use times
     fig['layout']['xaxis']['tickformat'] = "%H:%M%p"
@@ -163,8 +163,8 @@ def create_gantt(df,color_code='id'):
     fig['layout']['xaxis']['rangeselector']['visible'] = False
 
     # Reenable autosizing
-    del fig['layout']['height']
-    del fig['layout']['width']
+    # del fig['layout']['height']
+    # del fig['layout']['width']
 
     return fig
 

@@ -2,7 +2,9 @@ import pickle, sys, io, contextlib, json, os
 from os.path import join as pjoin
 
 _dir = os.path.dirname(os.path.abspath(__file__))
-default_scheduler_directory = pjoin(_dir, "../scheduler")
+default_scheduler_directory = pjoin(_dir, "../adaptive_scheduler/scheduler")
+
+print("Default Scheduler Path:", default_scheduler_directory)
 
 def get_scheduler_directory():
     global default_scheduler_directory

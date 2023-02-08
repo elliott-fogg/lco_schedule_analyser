@@ -1,8 +1,10 @@
 import json
 import pandas as pd
 
-input_filepath = "data/input_request_data.json"
-output_filepath = "data/normal_schedule_20190416024632.json"
+input_filepath = "sample_files/sample_input.json"
+output_filepath = "sample_files/sample_output.json"
+# input_filepath = "data/input_request_data.json"
+# output_filepath = "data/normal_schedule_20190416024632.json"
 
 # Get all relevant information from the Scheduler Output
 def get_output_data():
@@ -22,8 +24,8 @@ def get_output_data():
     dark_intervals = telescope_info['dark_intervals']
 
     def format_block(r):
-        r_start = str(x['start']).split("T")
-        r_finish = str(x['end']).split("T")
+        r_start = str(r['start']).split("T")
+        r_finish = str(r['end']).split("T")
 
         return {
             "id": r['request_id'],
@@ -43,8 +45,11 @@ def get_output_data():
 def get_input_data():
 
     # Load the pickled datafile
-    from unpickler import load_pickled_file
-    data = load_pickled_file()
+    # from unpickler import load_pickled_file
+    # data = load_pickled_file(input_filepath)
+
+    with open(input_filepath, "r") as openfile:
+        data = json.load(openfile)
 
     # Overview information
     available_telescopes = data['available_resources']
@@ -52,7 +57,8 @@ def get_input_data():
 
     # Proposal Priorities
     proposals_objects = data['proposals_by_id']
-    proposals = { val.id: val.tac_priority for (key,val) in \
+
+    proposals = { val["id"]: val["tac_priority"] for (key,val) in \
         proposals_objects.items()}
 
     # Schedule Parameters?
@@ -68,7 +74,7 @@ def get_input_data():
         r['request_type'] = request['observation_type']
         r['proposal_name'] = request['proposal']
         r['proposal_priority'] = proposals[r['proposal_name']]
-        r['priority_value'] = r['proposal_priority'] * r['ipp']
+        r['priority_value'] = float(r['proposal_priority']) * float(r['ipp'])
         r['request_id'] = request['id']
 
         # Observation Details
@@ -79,15 +85,15 @@ def get_input_data():
             # the entire 'group'.
             # This will have to change for cadenced observations.
         if len(individual_requests) > 1:
-            print "WARNING: This observation request group has more than one "+\
+            print("WARNING: This observation request group has more than one "+\
                 "request inside.\nSoftware needs to be redesigned for "+\
-                "multi-request groups."
+                "multi-request groups.")
 
         details = individual_requests[0]
         r['acceptability_threshold'] = details['acceptability_threshold']
         r['duration'] = details['duration']
         # r['observation_id'] = details['id']
-        r['priority_total'] = r['priority_value'] * r['duration']
+        r['priority_total'] = float(r['priority_value']) * float(r['duration'])
 
         # Format Window strings
         windows = []
@@ -113,9 +119,11 @@ def get_input_data():
             config['config_priority'] = c['priority']
             # Target Information
             target = c['target']
-            config['target_name'] = target.name
-            config['target_ra'] = target.get_ra().degrees
-            config['target_dec'] = target.get_dec().degrees
+            config['target_name'] = target['name']
+            # config['target_ra'] = target.get_ra().degrees
+            # config['target_dec'] = target.get_dec().degrees
+            config["target_ra"] = target["_ra"]
+            config["target_dec"] = target["_dec"]
             # Input instrument configurations as JSON text blocks
             config['instrument_configs'] = c['instrument_configs']
             configurations.append(config)
@@ -128,7 +136,13 @@ def get_input_data():
 # Compile all information into a dataframe to be used by Plotly
 def obtain_dataframe():
     requests_df = pd.DataFrame(get_input_data())
+    requests_df = requests_df.astype({"request_id": "int32"})
     scheduled_df = pd.DataFrame(get_output_data())
+
+    print(requests_df.columns)
+    print(requests_df.dtypes)
+    print(scheduled_df.columns)
+    print(scheduled_df.dtypes)
 
     df = requests_df.join(scheduled_df.set_index('id'), on='request_id')
 
@@ -144,4 +158,4 @@ if __name__ == "__main__":
 
     df = obtain_dataframe()
 
-    print df.head()
+    print(df.head())

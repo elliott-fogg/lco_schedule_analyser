@@ -77,22 +77,22 @@ app.layout = html.Div([
     html.Div([
             dcc.Dropdown(
                 id="colorcode-dropdown",
-                options=[{'label':l,'value':v} for l,v in color_options.iteritems()],
+                options=[{'label':l,'value':v} for l,v in color_options.items()],
                 value='id',
                 clearable=False),
         ],
         style={'width':'25%', 'display':'inline-block'}),
 
-    html.Div([
-        html.Details([
-            html.Summary("Contention Plot"),
-            dcc.Graph(
-                id="contention-chart",
-                figure=contention(df),
-                config={'displayModeBar': False}
-            )
-        ])
-    ]),
+    # html.Div([
+    #     html.Details([
+    #         html.Summary("Contention Plot"),
+    #         dcc.Graph(
+    #             id="contention-chart",
+    #             figure=contention(df),
+    #             config={'displayModeBar': False}
+    #         )
+    #     ])
+    # ]),
 
     dcc.Graph(
         id='gantt-chart',figure=fig,config={'displayModeBar': False}),
@@ -140,8 +140,8 @@ def display_click_data(clickData):
             curve_num = clickData['points'][0]['curveNumber']
             click_id = df.loc[df['curve'] == curve_num]['request_id'].values[0]
         except Exception as e:
-            print "CLICKING ERROR: Something went wrong"
-            print e
+            print("CLICKING ERROR: Something went wrong")
+            print(e)
             click_id = 'None'
     return click_id
 
@@ -159,7 +159,7 @@ def display_click_data(request_id):
                 drop=True).to_dict('index')[0]
             output_dict = create_display_dict(selected_row)
         except Exception as e:
-            print e
+            print(e)
             output_dict = "clickData does exist, but there was an error"
     return dict_to_collapsible(output_dict)
 

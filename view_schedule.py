@@ -7,7 +7,7 @@ import os
 import argparse
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
-default_path = os.path.join(file_dir, "sample_input.json")
+default_path = os.path.join(file_dir, "sample_files/sample_input.json")
 
 default_input_filepath = "data/input_request_data.json"
 default_output_filepath = "data/normal_schedule_20190416024632.json"
